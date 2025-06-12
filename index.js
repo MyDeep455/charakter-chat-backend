@@ -14,14 +14,14 @@ const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 app.post("/chat", async (req, res) => {
     try {
-        const { character, chatHistory, userMessage } = req.body;
+        // GEÄNDERT: Wir holen uns jetzt auch die "temperature" aus der Anfrage.
+        // Wir geben ihr einen Standardwert von 0.7, falls sie nicht mitgeschickt wird.
+        const { character, chatHistory, userMessage, temperature = 0.7 } = req.body;
 
-        // GEÄNDERT: Wir prüfen jetzt, ob 'userMessage' überhaupt nicht existiert (undefined),
-        // aber wir erlauben, dass es ein leerer String "" ist.
-        if (!character || typeof userMessage === "undefined") {
-            return res.status(400).json({
-                error: "Charakter-Daten und eine Nachricht (kann leer sein) sind erforderlich.",
-            });
+        if (!character || typeof userMessage === 'undefined') {
+            return res
+                .status(400)
+                .json({ error: "Charakter-Daten und eine Nachricht (kann leer sein) sind erforderlich." });
         }
 
         const messages = [
@@ -44,7 +44,8 @@ app.post("/chat", async (req, res) => {
             body: JSON.stringify({
                 model: "deepseek-ai/DeepSeek-R1-0528",
                 messages: messages,
-                temperature: 0.7,
+                // GEÄNDERT: Wir benutzen jetzt den Wert vom Slider, statt eines festen Werts.
+                temperature: parseFloat(temperature),
                 stream: true,
             }),
         });
