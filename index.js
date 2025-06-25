@@ -95,7 +95,7 @@ app.post('/generate-title', async (req, res) => {
         messages: [
           {
             "role": "system",
-            "content": "Du bist ein hilfreicher Assistent, der einen Chatverlauf analysiert und einen kurzen, prägnanten, thematischen Titel dafür generiert. Antworte NUR mit dem Titel und nichts anderem. Der Titel soll auf Deutsch sein. Füge keine Anführungszeichen hinzu."
+            "content": "Your only task is to create a short, thematic title for a chat history. Reply ONLY with the title. Do not include any comments, introductions or inverted commas. Example: “Planning the mission”, “Discussion about alchemy”, “An unexpected confession."
           },
           {
             "role": "user",
