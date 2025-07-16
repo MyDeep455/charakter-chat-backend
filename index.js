@@ -9,19 +9,22 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// GEÄNDERT: Die URL zeigt jetzt auf die OpenRouter API v1.
 const PROXY_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-// GEÄNDERT: Wir laden jetzt den neuen Key aus der .env-Datei.
+
 const API_KEY = process.env.OPENROUTER_API_KEY;
 
 app.post("/chat", async (req, res) => {
+    // Sicherheitsabfrage, ob der Key überhaupt geladen wurde.
+    if (!API_KEY) {
+        console.error("FEHLER: OPENROUTER_API_KEY nicht auf dem Server gefunden!");
+        return res.status(500).json({ error: "API-Key ist auf dem Server nicht konfiguriert." });
+    }
+
     try {
         const { character, chatHistory, userMessage, temperature = 0.7 } = req.body;
 
         if (!character || typeof userMessage === 'undefined') {
-            return res
-                .status(400)
-                .json({ error: "Charakter-Daten und eine Nachricht (kann leer sein) sind erforderlich." });
+            return res.status(400).json({ error: "Charakter-Daten und eine Nachricht sind erforderlich." });
         }
 
         const messages = [
@@ -40,13 +43,11 @@ app.post("/chat", async (req, res) => {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${API_KEY}`,
-                // NEU: Die von OpenRouter empfohlenen Header für das Ranking.
-                "HTTP-Referer": "https://charakter-chat-backend.onrender.com", // Ersetze das mit deiner Render-URL
-                "X-Title": "AI Charakter-Chat App",      // Dein App-Name
+                "HTTP-Referer": "https://charakter-chat-backend.onrender.com", 
+                "X-Title": "AI Charakter-Chat App",
             },
             body: JSON.stringify({
-                // GEÄNDERT: Der exakte Modell-Name aus deinem Screenshot.
-                model: "deepseek/deepseek-r1-0528:free", 
+                model: "deepseek/deepseek-r1-0528:free",
                 messages: messages,
                 temperature: parseFloat(temperature),
                 stream: true,
