@@ -14,17 +14,17 @@ const PROXY_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const API_KEY = process.env.OPENROUTER_API_KEY;
 
 app.post("/chat", async (req, res) => {
-    // Sicherheitsabfrage, ob der Key überhaupt geladen wurde.
+    // Security query as to whether the key has been loaded at all.
     if (!API_KEY) {
-        console.error("FEHLER: OPENROUTER_API_KEY nicht auf dem Server gefunden!");
-        return res.status(500).json({ error: "API-Key ist auf dem Server nicht konfiguriert." });
+        console.error("ERROR: OPENROUTER_API_KEY not found on the server!");
+        return res.status(500).json({ error: "API key is not configured on the server." });
     }
 
     try {
-        const { character, chatHistory, userMessage, temperature = 0.7 } = req.body;
+        const { character, chatHistory, userMessage, temperature = 0.7, modelName } = req.body;
 
         if (!character || typeof userMessage === 'undefined') {
-            return res.status(400).json({ error: "Charakter-Daten und eine Nachricht sind erforderlich." });
+            return res.status(400).json({ error: "Character data and a message are required." });
         }
 
         const messages = [
@@ -47,7 +47,8 @@ app.post("/chat", async (req, res) => {
                 "X-Title": "AI Charakter-Chat App",
             },
             body: JSON.stringify({
-                model: "deepseek/deepseek-r1-0528:free",
+                //If for some reason no model name is transmitted, the model below is the fallback option.
+                model: modelName || "deepseek/deepseek-r1-0528:free",
                 messages: messages,
                 temperature: parseFloat(temperature),
                 stream: true,
@@ -64,7 +65,7 @@ app.post("/chat", async (req, res) => {
         res.setHeader("Content-Type", "text/event-stream");
         apiResponse.body.pipe(res);
     } catch (error) {
-        console.error("Fehler beim Verarbeiten der Anfrage:", error.message);
+        console.error("Error processing the request:", error.message);
         if (!res.headersSent) {
             res.status(500).json({ error: error.message });
         }
@@ -72,5 +73,5 @@ app.post("/chat", async (req, res) => {
 });
 
 app.listen(3000, "0.0.0.0", () => {
-    console.log(`Server läuft auf Port 3000 und ist bereit für Verbindungen.`);
+    console.log(`Server is running on port 3000 and is ready for connections.`);
 });
